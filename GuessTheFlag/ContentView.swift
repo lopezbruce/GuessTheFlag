@@ -12,8 +12,9 @@ struct ContentView: View {
     @State private var correctAnswer = Int.random(in: 0...2)
     
     @State private var showingScore = false
+    @State private var gameOver = false
     @State private var scoreTitle = ""
-    
+    @State private var plays = 0
     @State private var scoretotal = 0
     
     var body: some View {
@@ -71,6 +72,10 @@ struct ContentView: View {
             Button("Continue", action: askQuestion)
         } message: {
             Text("Your score is \(scoretotal)")
+        }.alert("Gameover!", isPresented: $gameOver) {
+            Button("Restart game?", action: restartGame)
+        } message: {
+            Text("Your final score is \(scoretotal)/800")
         }
     }
     
@@ -78,16 +83,30 @@ struct ContentView: View {
         if number == correctAnswer {
             scoreTitle = "Correct"
             scoretotal += 100
+            plays += 1
         } else {
-            scoreTitle = "Wrong"
+            scoreTitle = "Wrong! That's the flag of \(countries[correctAnswer])"
+            scoretotal -= 100
+            plays += 1
         }
-
-        showingScore = true
+        
+        if plays == 8 {
+            gameOver = true
+        }else {
+            showingScore = true
+        }
     }
     
     func askQuestion() {
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+    }
+    
+    func restartGame() {
+            gameOver = false
+            plays = 0
+            scoretotal = 0
+            askQuestion()
     }
 }
 
