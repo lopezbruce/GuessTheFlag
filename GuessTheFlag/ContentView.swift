@@ -43,6 +43,12 @@ struct ContentView: View {
     @State private var plays = 0
     @State private var scoretotal = 0
     
+    @State private var animateCorrect = 0.0
+    @State private var animateOpacity = 1.0
+    @State private var besidesTheCorrect = false
+    @State private var besidesTheWrong = false
+    @State private var selectedFlag = 0
+    
     var body: some View {
         ZStack {
             RadialGradient(stops: [
@@ -67,10 +73,17 @@ struct ContentView: View {
                     
                     ForEach(0..<3) { number in
                         Button {
-                            flagTapped(number)
+                            
+                            self.selectedFlag = number
+                            self.flagTapped(number)
+                            
                         } label: {
-                            FlagImage(countryImage: countries[number])
+                            FlagImage(countryImage: self.countries[number])
                         }
+                        .rotation3DEffect(.degrees(number == self.correctAnswer ? self.animateCorrect : 0), axis: (x: 0, y: 1, z: 0))
+                        .opacity(number != self.correctAnswer && self.besidesTheCorrect ? self.animateOpacity : 1)
+                        .background(self.besidesTheWrong && self.selectedFlag == number ? Capsule(style: .circular).fill(Color.red).blur(radius: 30) : Capsule(style: .circular).fill(Color.clear).blur(radius: 0))
+                        .opacity(self.besidesTheWrong && self.selectedFlag != number ? self.animateOpacity : 1)
                         
                     }
                 }
@@ -106,10 +119,20 @@ struct ContentView: View {
             scoreTitle = "Correct"
             scoretotal += 100
             plays += 1
+            
+            withAnimation {
+                self.animateCorrect += 360
+                self.animateOpacity = 0.25
+                self.besidesTheCorrect = true
+            }
         } else {
             scoreTitle = "Wrong! That's the flag of \(countries[correctAnswer])"
             scoretotal -= 100
             plays += 1
+            withAnimation {
+                self.animateOpacity = 0.25
+                self.besidesTheWrong = true
+            }
         }
         
         if plays == 8 {
@@ -120,6 +143,8 @@ struct ContentView: View {
     }
     
     func askQuestion() {
+        besidesTheCorrect = false
+        besidesTheWrong = false
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
     }
